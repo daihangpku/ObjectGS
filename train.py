@@ -48,6 +48,8 @@ import warnings
 from render import render_sets
 warnings.filterwarnings('ignore')
 
+from utils.sam_utils import generate_sam_data_for_scene, ImgGroupModelConfig
+
 lpips_fn = lpips.LPIPS(net='vgg').to('cuda')
 
 try:
@@ -268,6 +270,22 @@ def training(dataset, opt, pipe, dataset_name, testing_iterations, saving_iterat
             if (iteration in saving_iterations):
                 logger.info("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
+
+            if iteration == 1000:
+                logger.info("\n[ITER {}] Generating SAM data".format(iteration))
+                sam_config = ImgGroupModelConfig(
+                    model_type="sam_fb",
+                    device="cuda"
+                )
+                sam_data_path = os.path.join(scene.model_path, "sam_data.hdf5")
+                generate_sam_data_for_scene(
+                    scene=scene,
+                    sam_data_path=sam_data_path,
+                    img_group_config=sam_config,
+                    gaussians=gaussians,
+                    pipeline_config=pipe,
+                    background=scene.background
+                )
 
             if iteration % pipe.vis_step == 0 or iteration == 1 or (iteration % 100 == 0 and iteration < 1000):
                 viewpoint_cam = scene.getTrainCameras().copy()[10]

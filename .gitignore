@@ -23,3 +23,6 @@ output*
 demo
 mesh
 models/
+vis_sam/
+garfield/
+tests/
